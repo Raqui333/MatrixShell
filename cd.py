@@ -1,7 +1,7 @@
 ## Python3.5
 ## CD
 
-from os import *
+from os import chdir, environ
 
 def _cd(param):
           if len(param) == 1 or param[1] == "~": chdir(environ["HOME"])

@@ -3,6 +3,7 @@
 
 from os import *
 from cd import _cd
+from socket import gethostname
 
 ## Functions and Programs
 def _exit(param):
@@ -14,6 +15,8 @@ def _get_exit_status(param):
           else: print("run it without any parameter")
 
 def _exec(param):
+          if param[0] == "ls": param.append("--color=auto")
+
           pid = fork()
           
           if pid == 0:
@@ -29,13 +32,23 @@ programlist = ({"exit": _exit, "cd": _cd, "get_exit_status": _get_exit_status})
 status = 0
 
 while (True):
-          prompt = "\033[1;32m{} \033[1;37m{} \033[00m# ".format(environ["USER"], path.basename(getcwd()))
+          user = environ["USER"]
+          host = gethostname()
+
+          currentDirectory = getcwd()
+          currentDirectory = currentDirectory.replace("/home/{}".format(user), "~")
+
+          prompt = "\033[1;32m{}\033[1;37m@\033[1;32m{} \033[1;37m{} \033[00m$ ".format(user, host, currentDirectory)
           if status != 0: prompt = "\033[1;31m({}) {}".format(status, prompt)
 
           try:
                     commandLine  =  input(prompt)
                     param        =  commandLine.split()
           
+                    for elem in range(len(param)):
+                              if param[elem][0] == "$":
+                                        try: param[elem] = environ[param[elem][1:]]
+                                        except KeyError: param.remove(param[elem]); break
                     if param != []:
                               for progs in programlist:
                                         if param[0] == progs: programlist[progs](param); break
