@@ -31,7 +31,7 @@ programlist = ({"exit": _exit, "cd": _cd, "get_exit_status": _get_exit_status})
 ## Exit Status Default
 status = 0
 
-while (True):
+while True:
           user = environ["USER"]
           host = gethostname()
 
@@ -44,11 +44,14 @@ while (True):
           try:
                     commandLine  =  input(prompt)
                     param        =  commandLine.split()
-          
-                    for elem in range(len(param)):
+                    
+                    elem = 0
+                    while elem < len(param):
                               if param[elem][0] == "$":
                                         try: param[elem] = environ[param[elem][1:]]
-                                        except KeyError: param.remove(param[elem]); break
+                                        except KeyError: param.remove(param[elem]); elem = 0
+                              elem += 1
+                    
                     if param != []:
                               for progs in programlist:
                                         if param[0] == progs: programlist[progs](param); break
