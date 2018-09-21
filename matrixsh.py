@@ -1,3 +1,4 @@
+#!/usr/bin/python3.5
 ## Python3.5
 ## Matrix Shell
 
@@ -6,13 +7,12 @@ from cd import _cd
 from socket import gethostname
 
 ## Functions and Programs
-def _exit(param):
-          if len(param) == 1: exit()
-          else: print("run it without any parameter")
+def _exit_(ignore):
+          exit()
 
-def _get_exit_status(param):
-          if len(param) == 1: print(status)
-          else: print("run it without any parameter")
+def _get_exit_status(ignore):
+          print(status)
+          return 0
 
 def _exec(param):
           if param[0] == "ls": param.append("--color=auto")
@@ -21,12 +21,12 @@ def _exec(param):
           
           if pid == 0:
                     try: execvp(param[0], param)
-                    except FileNotFoundError: print("matrixsh: error: command not found:", param[0]); quit()
+                    except FileNotFoundError: print("matrixsh: error: command not found:", param[0])
           elif pid < 0: print("*** Fork Error")
           else: return waitpid(pid, 0)[1]
 
 ## Builtin Programs
-programlist = ({"exit": _exit, "cd": _cd, "get_exit_status": _get_exit_status})
+programlist = ({"exit": _exit_, "cd": _cd, "get_exit_status": _get_exit_status})
 
 ## Exit Status Default
 status = 0
@@ -39,7 +39,7 @@ while True:
           currentDirectory = currentDirectory.replace("/home/{}".format(user), "~")
 
           prompt = "\033[1;32m{}\033[1;37m@\033[1;32m{} \033[1;37m{} \033[00m$ ".format(user, host, currentDirectory)
-          if status != 0: prompt = "\033[1;31m({}) {}".format(status, prompt)
+          if status != 0: prompt = "\033[1;31m{} {}".format(status, prompt)
 
           try:
                     commandLine  =  input(prompt)
@@ -49,11 +49,15 @@ while True:
                     while elem < len(param):
                               if param[elem][0] == "$":
                                         try: param[elem] = environ[param[elem][1:]]
-                                        except KeyError: param.remove(param[elem]); elem = 0
+                                        except KeyError:
+                                                  param.remove(param[elem])
+                                                  elem = 0
                               elem += 1
                     
                     if param != []:
                               for progs in programlist:
-                                        if param[0] == progs: programlist[progs](param); break
+                                        if param[0] == progs:
+                                                  status = programlist[progs](param)
+                                                  break
                               else: status = _exec(param)
           except KeyboardInterrupt: print()
