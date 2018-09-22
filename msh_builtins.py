@@ -1,7 +1,14 @@
 ## Python3.5
 ## Builtin Programs
 
+version = "1.2"
+
 import os as _msh_os
+import readline as _msh_readline
+
+## History Config
+histfile = "{}/.msh_history".format(_msh_os.environ["HOME"])
+_msh_readline.set_history_length(1000)
 
 def msh_cd(param):
           if len(param) == 1 or param[1] == "~":
@@ -43,14 +50,8 @@ def _msh_exec(param):
           else: return _msh_os.waitpid(pid, 0)[1]
 
 def msh_exit(ignore):
+          _msh_readline.write_history_file(histfile)
           exit(0)
 
-def msh_get_exit_status(ignore):
-          print(status)
-          return 0
-          
-## Exit Status Default
-status = 0
-
 ## List Of Programs
-programlist = {"cd": msh_cd, "exit": msh_exit, "get_exit_status": msh_get_exit_status}
+programlist = {"cd": msh_cd, "exit": msh_exit}
