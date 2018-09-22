@@ -2,38 +2,12 @@
 ## Python3.5
 ## Matrix Shell
 
-version = "1.0"
+version = "1.1"
 
 from os import *
-from cd import _cd
+from msh_builtins import *
+from msh_builtins import _msh_exec
 from socket import gethostname
-
-## Functions and Programs
-def _exit_(ignore):
-          exit(0)
-
-def _get_exit_status(ignore):
-          print(status)
-          return 0
-
-def _exec(param):
-          if param[0] == "ls": param.append("--color=auto")
-
-          pid = fork()
-
-          if pid == 0:
-                    try: execvp(param[0], param)
-                    except Exception as e:
-                              print("matrixsh: error:", e.args[1] + ":", param[0])
-                              exit(e.errno)
-          elif pid < 0: print("*** Fork Error")
-          else: return waitpid(pid, 0)[1]
-
-## Builtin Programs
-programlist = ({"exit": _exit_, "cd": _cd, "get_exit_status": _get_exit_status})
-
-## Exit Status Default
-status = 0
 
 while True:
           user = environ["USER"]
@@ -63,6 +37,6 @@ while True:
                                         if param[0] == progs:
                                                   status = programlist[progs](param)
                                                   break
-                              else: status = _exec(param)
+                              else: status = _msh_exec(param)
           except KeyboardInterrupt: print()
           except EOFError: exit(0)
