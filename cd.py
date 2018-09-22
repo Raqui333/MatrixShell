@@ -1,7 +1,7 @@
 ## Python3.5
 ## CD
 
-version = "1.0"
+version = "1.1"
 
 from os import chdir, environ, getcwd
 
@@ -10,7 +10,16 @@ def _cd(param):
                     chdir(environ["HOME"])
                     return 0
           else:
-                    _path = " ".join(param[1:])
+                    elem = 1
+                    while elem < len(param[1:]):
+                              if param[elem][-1] == "\\":
+                                        param[elem] = " ".join([param[elem][:-1], param.pop(elem + 1)])
+                                        elem = 1
+                              else:
+                                        param[elem] = param.pop(elem + 1)
+                    
+                    _path = param[1]
+                    
                     if param[1] == "-":
                               print(getcwd())
                               return 0
