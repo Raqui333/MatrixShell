@@ -1,28 +1,22 @@
 ## Python3.5
 ## Builtin Programs
 
-version = "1.2"
+version = "1.3"
 
 import os as _msh_os
 import readline as _msh_readline
+from glob import glob as _glob
 
 ## History Config
 histfile = "{}/.msh_history".format(_msh_os.environ["HOME"])
 _msh_readline.set_history_length(1000)
 
+## Commands And Functions
 def msh_cd(param):
-          if len(param) == 1 or param[1] == "~":
+          if len(param) == 1:
                     _msh_os.chdir(_msh_os.environ["HOME"])
                     return 0
           else:
-                    elem = 1
-                    while elem < len(param[1:]):
-                              if param[elem][-1] == "\\":
-                                        param[elem] = " ".join([param[elem][:-1], param.pop(elem + 1)])
-                                        elem = 1
-                              else:
-                                        param[elem] = param.pop(elem + 1)
-                    
                     _path = param[1]
                     
                     if param[1] == "-":
@@ -36,8 +30,15 @@ def msh_cd(param):
                                         print("cd: error:", e.args[1] + ":", _path)
                                         return e.errno
 
+## Add Parameters To a Command
+alias = {"ls"    :  "--color=auto",
+         "grep"  :  "--color=auto"}
+
 def _msh_exec(param):
-          if param[0] == "ls": param.append("--color=auto")
+          for addParam in alias:
+                    if param[0] == addParam:
+                              param.append(alias[addParam])
+                              break
 
           pid = _msh_os.fork()
 
@@ -54,4 +55,27 @@ def msh_exit(ignore):
           exit(0)
 
 ## List Of Programs
-programlist = {"cd": msh_cd, "exit": msh_exit}
+programlist = {"cd"    :  msh_cd,
+               "exit"  :  msh_exit}
+
+## Matrix Shell Completer
+def msh_completer(text, state):
+          options = []
+          matches = []
+          
+          ## Files Completions
+          for files in _glob(_msh_os.getcwd() + "/*"): options.append(_msh_os.path.basename(files).replace(" ", "\\ "))
+          
+          ## Programs Completions
+          for progsDirectory in _msh_os.environ["PATH"].split(":"):
+                    for programs in _glob(progsDirectory + "/*"): options.append(_msh_os.path.basename(programs))
+          
+          ## Builtin Programs Completions
+          for builtins in programlist: options.append(builtins)
+          
+          if text:
+                    for chars in options:
+                              if chars[:len(text)] == text: matches = matches + [chars]
+          else: matches = options
+          
+          return matches[state]
