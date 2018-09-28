@@ -1,11 +1,15 @@
 ## Python3.5
 ## Builtin Programs
 
-version = "1.3"
+version = "1.4"
 
 import os as _msh_os
 import readline as _msh_readline
+import sys as _msh_sys
 from glob import glob as _glob
+
+## Initial Exit Status
+status = 0
 
 ## History Config
 histfile = "{}/.msh_history".format(_msh_os.environ["HOME"])
@@ -58,13 +62,15 @@ def msh_exit(ignore):
 programlist = {"cd"    :  msh_cd,
                "exit"  :  msh_exit}
 
+## To run complete when TAB key is pressed
+_msh_readline.parse_and_bind("TAB: complete")
+
 ## Matrix Shell Completer
 def msh_completer(text, state):
-          options = []
-          matches = []
+          options, matches = [], []
           
           ## Files Completions
-          for files in _glob(_msh_os.getcwd() + "/*"): options.append(_msh_os.path.basename(files).replace(" ", "\\ "))
+          for files in _glob(text + "*"): options.append(files.replace(" ", "\\ "))
           
           ## Programs Completions
           for progsDirectory in _msh_os.environ["PATH"].split(":"):
@@ -75,7 +81,44 @@ def msh_completer(text, state):
           
           if text:
                     for chars in options:
-                              if chars[:len(text)] == text: matches = matches + [chars]
-          else: matches = options
+                              if chars[:len(text)] == text: matches += [chars]
           
           return matches[state]
+
+## Default Prompt
+prompt = "> "
+
+def msh_display_completions(line_buffer, matches_list, number_of_matches):
+          print()
+          
+          ## Set files colors
+          for item in range(len(matches_list)):
+                    try:
+                              if   _msh_os.stat(matches_list[item], follow_symlinks=False).st_mode == 16877:
+                                        matches_list[item] = "\033[1;34m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
+                              elif _msh_os.stat(matches_list[item], follow_symlinks=False).st_mode == 41471:
+                                        matches_list[item] = "\033[1;36m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
+                              elif _msh_os.stat(matches_list[item], follow_symlinks=False).st_mode == 33261:
+                                        matches_list[item] = "\033[1;32m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
+                              else: matches_list[item] = "\033[1;00m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
+                    except FileNotFoundError: matches_list[item] = "\033[1;00m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
+          
+          ## Separate in columns
+          match, elem, line = [], 0, 0
+          while elem < len(matches_list):
+                    if len(match) == 0: match += [[]]
+                    
+                    match[line] += [matches_list[elem]]
+                    
+                    if len(match[line]) == 4:
+                              match += [[]]
+                              line += 1
+                    
+                    elem += 1
+          
+          ## Print Columns
+          column = max(len(word) for sub_list in match for word in sub_list) + 2
+          for lists in match: print(" ".join(word.ljust(column) for word in lists))
+          
+          ## Prompt
+          print(prompt + _msh_readline.get_line_buffer(), end="")
