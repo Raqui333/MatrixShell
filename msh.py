@@ -2,28 +2,21 @@
 ## Python3.5
 ## Matrix Shell
 
-version = "1.3"
+version = "1.3.1"
 
 from os import *
 from readline import *
-from readline import parse_and_bind as bind
-from msh_builtins import *
-from msh_builtins import _msh_exec
 from socket import gethostname
 
-## Initial Exit Status
-status = 0
+import msh_builtins as msh
+from msh_builtins import *
+from msh_builtins import _msh_exec
 
-## Binds
-bind("set colored-stats on")
-bind("set match-hidden-files off")
-bind("set completion-query-items -1")
-bind("set completion-prefix-display-length 0")
-bind("TAB: complete")
 
 ## Completer
 set_completer_delims(" ")
 set_completer(msh_completer)
+set_completion_display_matches_hook(msh_display_completions)
 
 ## History File
 if path.isfile(histfile) == False: write_history_file(histfile)
@@ -38,12 +31,12 @@ while True:
           currentDirectory = currentDirectory.replace("/home/{}".format(user), "~")
 
           ## DO NOT remove the NEWLINE
-          prompt = "\033[1;32m{}\033[1;37m@\033[1;32m{} \033[1;37m{}\033[00m\n$ ".format(user, host, currentDirectory)
-          if status != 0: prompt = "\033[1;31m{} {}".format(status, prompt)
+          msh.prompt = "\033[1;32m{}\033[1;37m@\033[1;32m{} \033[1;37m{}\033[00m\n$ ".format(user, host, currentDirectory)
+          if status != 0: msh.prompt = "\033[1;31m{} {}".format(status, msh.prompt)
 
           try:
                     ## Prompt
-                    commandLine = input(prompt)
+                    commandLine = input(msh.prompt)
                     param = commandLine.split()
 
                     ## Shell Special Characters
