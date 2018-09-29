@@ -1,7 +1,7 @@
 ## Python3.5
 ## Builtin Programs
 
-version = "1.4"
+version = "1.4.1"
 
 import os as _msh_os
 import readline as _msh_readline
@@ -70,7 +70,7 @@ def msh_completer(text, state):
           options, matches = [], []
           
           ## Files Completions
-          for files in _glob(text + "*"): options.append(files.replace(" ", "\\ "))
+          for files in _glob(text + "*"): options.append(files)
           
           ## Programs Completions
           for progsDirectory in _msh_os.environ["PATH"].split(":"):
@@ -88,29 +88,28 @@ def msh_completer(text, state):
 ## Default Prompt
 prompt = "> "
 
-def msh_display_completions(line_buffer, matches_list, number_of_matches):
+def msh_display_completions(L_buffer, matches, N_matches):
           print()
           
           ## Set files colors
-          for item in range(len(matches_list)):
+          basename = _msh_os.path.basename
+          for item in range(len(matches)):
                     try:
-                              if   _msh_os.stat(matches_list[item], follow_symlinks=False).st_mode == 16877:
-                                        matches_list[item] = "\033[1;34m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
-                              elif _msh_os.stat(matches_list[item], follow_symlinks=False).st_mode == 41471:
-                                        matches_list[item] = "\033[1;36m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
-                              elif _msh_os.stat(matches_list[item], follow_symlinks=False).st_mode == 33261:
-                                        matches_list[item] = "\033[1;32m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
-                              else: matches_list[item] = "\033[1;00m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
-                    except FileNotFoundError: matches_list[item] = "\033[1;00m" + _msh_os.path.basename(matches_list[item]) + "\033[00m"
+                              file_type = _msh_os.stat(matches[item], follow_symlinks=False).st_mode
+                              if    file_type == 16877  :  matches[item] = "\033[1;34m" + basename(matches[item]) + "\033[00m"
+                              elif  file_type == 41471  :  matches[item] = "\033[1;36m" + basename(matches[item]) + "\033[00m"
+                              elif  file_type == 33261  :  matches[item] = "\033[1;32m" + basename(matches[item]) + "\033[00m"
+                              else                      :  matches[item] = "\033[1;00m" + basename(matches[item]) + "\033[00m"
+                    except FileNotFoundError            :  matches[item] = "\033[1;00m" + basename(matches[item]) + "\033[00m"
+                    ## BUG: it'll never return a string with \ or without \
+                    matches[item] = matches[item].replace(" ", "\\ ")
           
           ## Separate in columns
-          match, elem, line = [], 0, 0
-          while elem < len(matches_list):
-                    if len(match) == 0: match += [[]]
+          match, elem, line = [[]], 0, 0
+          while elem < len(matches):
+                    match[line] += [matches[elem]]
                     
-                    match[line] += [matches_list[elem]]
-                    
-                    if len(match[line]) == 4:
+                    if len(match[line]) == 5:
                               match += [[]]
                               line += 1
                     

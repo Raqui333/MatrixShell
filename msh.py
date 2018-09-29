@@ -12,7 +12,6 @@ import msh_builtins as msh
 from msh_builtins import *
 from msh_builtins import _msh_exec
 
-
 ## Completer
 set_completer_delims(" ")
 set_completer(msh_completer)
